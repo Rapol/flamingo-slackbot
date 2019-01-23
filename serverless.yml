@@ -1,0 +1,33 @@
+service:
+  name: flamingo
+
+plugins:
+  - serverless-webpack
+
+custom:
+  profiles:
+    dev: toolconnect-dev
+    stage: toolconnect-stage
+    prod: toolconnect-prod
+  profile: ${self:custom.profiles.${self:provider.stage}}
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: ${opt:stage, env:NODE_ENV}
+  region: ${opt:region, 'us-east-1'}
+  profile: ${self:custom.profile}
+  memorySize: "128"
+  timeout: "15"
+  versionFunctions: "false"
+
+package:
+  individually: "true"
+
+functions:
+  bot:
+    handler: handler.bot
+    events:
+      - http:
+          method: post
+          path: slack-event
