@@ -15,11 +15,11 @@ const axiosInstance = axios.create({
   headers: { 'Content-Type': 'application/json' }
 });
 
-export const bot: Handler = (event: APIGatewayEvent, context: Context, cb: Callback) => {
+export const bot: Handler = async (event: APIGatewayEvent, context: Context, cb: Callback) => {
   if (!event.body) {
-    return Promise.resolve({
+    return {
       statusCode: 200,
-    });
+    };
   }
   const slackMessage: any = JSON.parse(event.body);
   const {
@@ -27,17 +27,20 @@ export const bot: Handler = (event: APIGatewayEvent, context: Context, cb: Callb
   } = slackMessage;
   console.log(slackEvent);
   if (slackEvent.bot_id || slackEvent.subtype === 'bot_message') {
-    return Promise.resolve({
+    return {
       statusCode: 200,
-    });
+    };
   }
   const {
     channel,
     text,
   } = slackEvent;
-  return web.chat.postMessage({
+  const result = await web.chat.postMessage({
     channel,
     text: text.split('').reverse().join(''),
   });
+  return {
+    statusCode: 200,
+  };
 }
 
