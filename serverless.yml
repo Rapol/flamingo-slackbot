@@ -10,6 +10,8 @@ custom:
     stage: toolconnect-stage
     prod: toolconnect-prod
   profile: ${self:custom.profiles.${self:provider.stage}}
+  flamingoMeetingTable: ${self:service.name}-meeting-${self:provider.stage}-${self:provider.region}
+  variables: ${file(env.yml)}
 
 provider:
   name: aws
@@ -20,14 +22,45 @@ provider:
   memorySize: "128"
   timeout: "15"
   versionFunctions: "false"
+  environment:
+    BOT_TOKEN: ${self:custom.variables.BOT_TOKEN}
+    CHANNEL_REPORT: ${self:custom.variables.CHANNEL_REPORT}
 
 package:
   individually: "true"
 
 functions:
   bot:
-    handler: handler.bot
+    handler: src/handler.bot
     events:
       - http:
           method: post
           path: slack-event
+  meetingStart:
+    handler: src/handler.meetingStart
+    events:
+      - scheduled: ${self:custom.variables.MEETING_START_TIME}
+
+resources:
+  Resources:
+    FlamingoMeeting:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        TableName: ${self:custom.flamingoMeetingTable}
+        AttributeDefinitions:
+          -
+            AttributeName: userId
+            AttributeType: S
+          -
+            AttributeName: date
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: userId
+            KeyType: HASH
+          -
+            AttributeName: date
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
