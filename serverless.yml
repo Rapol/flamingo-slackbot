@@ -31,13 +31,13 @@ package:
 
 functions:
   bot:
-    handler: src/handler.bot
+    handler: src/index.botHandler
     events:
       - http:
           method: post
           path: slack-event
-  meetingStart:
-    handler: src/handler.meetingStart
+  startMeeting:
+    handler: src/index.startMeetingHandler
     events:
       - scheduled: ${self:custom.variables.MEETING_START_TIME}
 

@@ -1,4 +1,3 @@
-import { APIGatewayEvent, Callback, Context, Handler } from 'aws-lambda';
 import { WebClient } from '@slack/client';
 
 import config from './config';
@@ -13,10 +12,6 @@ const {
 } = config;
 
 const web = new WebClient(BOT_TOKEN);
-
-function parseEvent(event: APIGatewayEvent): SlackEvent {
-    return event.body ? JSON.parse(event.body) : null;
-}
 
 function getQuestionByOrder(order: number) {
     return QUESTIONS.find(q => q.order === order);
@@ -38,27 +33,12 @@ async function sendMessageToUser(userId: string, text: string): Promise<string> 
     return channel.id;
 }
 
-export const meetingStart = async (event: APIGatewayEvent, context: Context, cb: Callback) => {
+export const startMeeting = async () => {
     const sentMessages = USERS.map(u => sendMessageToUser(u.userId, getQuestionByOrder(0).text));
     return Promise.all(sentMessages);
 }
 
-function meetingReport() {
-
-}
-
-export const meetingEnd = async (event: APIGatewayEvent, context: Context, cb: Callback) => {
-    const slackEvent = parseEvent(event);
-
-}
-
-export const bot: Handler = async (event: APIGatewayEvent, context: Context, cb: Callback) => {
-    const slackEvent = parseEvent(event);
-    if (!slackEvent) {
-        return {
-            statusCode: 200,
-        };
-    }
+export const slackBot = async (slackEvent: SlackEvent) => {
     const {
         event: slackMessage
     } = slackEvent;
