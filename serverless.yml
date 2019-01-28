@@ -25,6 +25,8 @@ provider:
   environment:
     BOT_TOKEN: ${self:custom.variables.BOT_TOKEN}
     CHANNEL_REPORT: ${self:custom.variables.CHANNEL_REPORT}
+    FLAMING_MEETING_TABLE: ${self:custom.flamingoMeetingTable}
+    AWS_PROFILE: ${self:provider.profile}
 
 package:
   individually: "true"

@@ -81,11 +81,11 @@ export interface SlackEvent {
     event_time: number;
 }
 
-interface SlackUser {
+export interface SlackUser {
     userId: string
 }
 
-interface StandupQuestion {
+export interface StandupQuestion {
     questionId: string;
     answer: string;
     order: number;
@@ -98,14 +98,8 @@ export interface Config {
     QUESTIONS: StandupQuestion[];
 }
 
-interface Answer {
-    questionId: string;
-    answer: string;
-    createdAt: number;
-}
-
-interface StandupRecord {
+export interface StandupRecord {
     userId: string;
     date: string;
-    answers: Answer[];
+    answers: StandupQuestion[];
 }
