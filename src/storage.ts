@@ -1,7 +1,7 @@
 import { DynamoDB, AWSError } from 'aws-sdk';
 import { PromiseResult } from 'aws-sdk/lib/request';
 
-import { StandupMeetingItem, SlackUser } from './types';
+import { StandupMeetingItem, SlackUser, StandupQuestion } from './types';
 
 export default class StorageAdapter {
     dynamoClient: DynamoDB.DocumentClient;
@@ -45,6 +45,42 @@ export default class StorageAdapter {
         }
         const { Responses } = await this.dynamoClient.batchGet(itemInput).promise();
         return Responses;
+    }
+
+    async updateUserResponse(userId: String, date: string, questionOrder, response: string) {
+        const itemInput: DynamoDB.DocumentClient.UpdateItemInput = {
+            TableName: this.tableName,
+            Key: {
+                userId,
+                date,
+            },
+            UpdateExpression: `SET responses[${questionOrder}].#r = :response`,
+            ExpressionAttributeNames: {
+                "#r": "response",
+            },
+            ExpressionAttributeValues: {
+                ":response": response,
+            },
+        };
+        return this.dynamoClient.update(itemInput).promise();
+    }
+
+    async askNextQuestion(userId: String, date: string, question: StandupQuestion) {
+        const itemInput: DynamoDB.DocumentClient.UpdateItemInput = {
+            TableName: this.tableName,
+            Key: {
+                userId,
+                date,
+            },
+            UpdateExpression: "SET #r = list_append(#r, :vals)",
+            ExpressionAttributeNames: {
+                "#r": "responses",
+            },
+            ExpressionAttributeValues: {
+                ":vals": [question],
+            },
+        };
+        return this.dynamoClient.update(itemInput).promise();
     }
 
     updateItem(userId: string, date: string, item: object): Promise<PromiseResult<DynamoDB.DocumentClient.UpdateItemOutput, AWSError>> {

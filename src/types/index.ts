@@ -65,6 +65,7 @@ export interface Event {
     type: EventType;
     event_ts: string;
     user?: string;
+    text: string;
     ts?: string;
     item?: any;
     [key: string]: any;

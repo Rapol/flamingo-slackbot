@@ -59,13 +59,23 @@ async function recordMessage(user: SlackUser, question: StandupQuestion) {
     await storage.createStandupMeetingItem(formatStandupMeetingItem(user, dateKey, question));
 }
 
+async function askNextQuestion(userId: string, date: string, question: StandupQuestion) {
+    await sendMessageToUser(userId, question.text);
+    await storage.askNextQuestion(userId, date, question);
+}
+
 export const startMeeting = async () => {
     const sentMessages = USERS.map(u => recordMessage(u, getQuestionByOrder(0)));
     return Promise.all(sentMessages);
 }
 
 function checkUserStandupCompletition(responses: StandupQuestion[]) {
-    return responses.length === QUESTIONS.length && responses.every(a => Boolean(a.text));
+    const completed = responses.length === QUESTIONS.length && responses.every(a => Boolean(a.response))
+    const currentQuestionIndex = responses.length - 1;
+    return {
+        completed,
+        currentQuestionIndex,
+    }
 }
 
 function getUserStandupStatus(userId: string, date: string) {
@@ -75,16 +85,31 @@ function getUserStandupStatus(userId: string, date: string) {
 async function handleUserReply(slackMessage: Event) {
     const {
         user,
+        text,
     } = slackMessage;
+    const date = getTodaysDate();
     // TODO: check if the event_time is between the stand up time
-    const standupMeetingItem = await getUserStandupStatus(user, getTodaysDate());
+    const standupMeetingItem = await getUserStandupStatus(user, date);
+    // user is not part of the cool kids
+    if (!standupMeetingItem) {
+        // talk to the hand
+        return;
+    }
     const {
         responses,
     } = standupMeetingItem;
-    console.log(standupMeetingItem);
-    if (checkUserStandupCompletition(responses)) {
-        await sendMessageToUser(user, 'You have already sent your update');
+    const {
+        completed,
+        currentQuestionIndex,
+    } = checkUserStandupCompletition(responses);
+    if (completed) {
+        return sendMessageToUser(user, 'You have already sent your update');
     }
+    await storage.updateUserResponse(user, date, currentQuestionIndex, text);
+    if (currentQuestionIndex + 1 > QUESTIONS.length) {
+        return sendMessageToUser(user, 'Great! All caught up, have a nice day');
+    }
+    await askNextQuestion(user, date, QUESTIONS[currentQuestionIndex + 1]);
 }
 
 export const slackBot = async (slackEvent: SlackEvent) => {
