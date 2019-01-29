@@ -17,7 +17,6 @@ export default class StorageAdapter {
             TableName: this.tableName,
             Item: item,
         }
-        console.log(itemInput);
         return this.dynamoClient.put(itemInput).promise();
     }
 

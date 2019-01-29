@@ -28,7 +28,7 @@ function formatStandupMeetingItem(user: SlackUser, date: string, question: Stand
     return <StandupMeetingItem>{
         userId: user.userId,
         date,
-        answers: [
+        responses: [
             {
                 ...question,
                 createdAt: Date.now(),
@@ -64,8 +64,8 @@ export const startMeeting = async () => {
     return Promise.all(sentMessages);
 }
 
-function checkUserStandupCompletition(answers: StandupQuestion[]) {
-    return answers.length === QUESTIONS.length && answers.every(a => Boolean(a.text));
+function checkUserStandupCompletition(responses: StandupQuestion[]) {
+    return responses.length === QUESTIONS.length && responses.every(a => Boolean(a.text));
 }
 
 function getUserStandupStatus(userId: string, date: string) {
@@ -75,12 +75,14 @@ function getUserStandupStatus(userId: string, date: string) {
 async function handleUserReply(slackMessage: Event) {
     const {
         user,
-        answers,
     } = slackMessage;
     // TODO: check if the event_time is between the stand up time
     const standupMeetingItem = await getUserStandupStatus(user, getTodaysDate());
+    const {
+        responses,
+    } = standupMeetingItem;
     console.log(standupMeetingItem);
-    if (checkUserStandupCompletition(answers)) {
+    if (checkUserStandupCompletition(responses)) {
         await sendMessageToUser(user, 'You have already sent your update');
     }
 }
