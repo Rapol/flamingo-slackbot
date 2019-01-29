@@ -61,7 +61,7 @@ type EventType =
     "url_verification"        |
     "user_change";
 
-interface Event {
+export interface Event {
     type: EventType;
     event_ts: string;
     user?: string;
@@ -98,7 +98,7 @@ export interface Config {
     QUESTIONS: StandupQuestion[];
 }
 
-export interface StandupRecord {
+export interface StandupMeetingItem {
     userId: string;
     date: string;
     answers: StandupQuestion[];

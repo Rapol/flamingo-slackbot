@@ -1,7 +1,7 @@
 import { DynamoDB, AWSError } from 'aws-sdk';
 import { PromiseResult } from 'aws-sdk/lib/request';
 
-import { StandupRecord, SlackUser } from './types';
+import { StandupMeetingItem, SlackUser } from './types';
 
 export default class StorageAdapter {
     dynamoClient: DynamoDB.DocumentClient;
@@ -12,7 +12,7 @@ export default class StorageAdapter {
         this.dynamoClient = new DynamoDB.DocumentClient();
     }
 
-    createStandupRecord(item: StandupRecord): Promise<PromiseResult<DynamoDB.DocumentClient.PutItemOutput, AWSError>> {
+    createStandupMeetingItem(item: StandupMeetingItem): Promise<PromiseResult<DynamoDB.DocumentClient.PutItemOutput, AWSError>> {
         const itemInput: DynamoDB.DocumentClient.PutItemInput = {
             TableName: this.tableName,
             Item: item,
@@ -21,7 +21,7 @@ export default class StorageAdapter {
         return this.dynamoClient.put(itemInput).promise();
     }
 
-    getStandupRecord(userId: string, date: string): Promise<PromiseResult<DynamoDB.DocumentClient.GetItemOutput, AWSError>> {
+    async getStandupMeetingItem(userId: string, date: string): Promise<DynamoDB.DocumentClient.AttributeMap> {
         const itemInput: DynamoDB.DocumentClient.GetItemInput = {
             TableName: this.tableName,
             Key: {
@@ -29,10 +29,11 @@ export default class StorageAdapter {
                 date,
             }
         }
-        return this.dynamoClient.get(itemInput).promise();
+        const { Item } = await this.dynamoClient.get(itemInput).promise();
+        return Item;
     }
 
-    batchGetStandupRecord(users: SlackUser[], date: string): Promise<PromiseResult<DynamoDB.DocumentClient.BatchGetItemOutput, AWSError>> {
+    async batchGetStandupMeetingItem(users: SlackUser[], date: string): Promise<DynamoDB.DocumentClient.BatchGetResponseMap> {
         const itemInput: DynamoDB.DocumentClient.BatchGetItemInput = {
             RequestItems: {
                 [this.tableName]: {
@@ -43,7 +44,8 @@ export default class StorageAdapter {
                 }
             }
         }
-        return this.dynamoClient.batchGet(itemInput).promise();
+        const { Responses } = await this.dynamoClient.batchGet(itemInput).promise();
+        return Responses;
     }
 
     updateItem(userId: string, date: string, item: object): Promise<PromiseResult<DynamoDB.DocumentClient.UpdateItemOutput, AWSError>> {

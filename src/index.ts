@@ -5,9 +5,9 @@ import { startMeeting, slackBot } from './slack';
 import { SlackEvent } from './types';
 
 function parseEvent(event: APIGatewayEvent): SlackEvent {
-    return event.body ? JSON.parse(event.body) : null;
+    return (event.body && typeof event.body === 'string') ? JSON.parse(event.body) : event.body;
 }
-export const startMeetingHandler : Handler = async (event: APIGatewayEvent, context: Context, cb: Callback) => {
+export const startMeetingHandler: Handler = async (event: APIGatewayEvent, context: Context, cb: Callback) => {
     return startMeeting();
 }
 

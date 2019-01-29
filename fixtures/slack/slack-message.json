@@ -1,0 +1,28 @@
+{
+    "pathParameters": {},
+    "requestContext": {
+        "resourcePath": "/slack-event",
+        "httpMethod": "POST"
+    },
+    "body": {
+        "token": "FaMjYh4QmGjAA0nzkn0d9Djh",
+        "team_id": "TFKTMU7LH",
+        "api_app_id": "AFKTNE62V",
+        "event": {
+            "client_msg_id": "9ad2cf00-9b2e-422b-b34f-c60bf735c9b1",
+            "type": "message",
+            "text": "hello",
+            "user": "UFLFZ8HNE",
+            "ts": "1548615283.000600",
+            "channel": "DFKQNNTA4",
+            "event_ts": "1548615283.000600",
+            "channel_type": "im"
+        },
+        "type": "event_callback",
+        "event_id": "EvFQ7RPTFD",
+        "event_time": 1548615283,
+        "authed_users": [
+            "UFKUJV3PT"
+        ]
+    }
+}

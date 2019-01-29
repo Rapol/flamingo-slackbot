@@ -2,7 +2,7 @@ import { WebClient } from '@slack/client';
 
 import Storage from './storage';
 import config from './config';
-import { SlackEvent, SlackUser, StandupQuestion, StandupRecord } from './types';
+import { Event, SlackEvent, SlackUser, StandupQuestion, StandupMeetingItem } from './types';
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const CHANNEL_REPORT = process.env.CHANNEL_REPORT;
@@ -24,8 +24,8 @@ function getTodaysDate(): string {
     return new Date().toISOString().split('T')[0];
 }
 
-function getStandupRecord(user: SlackUser, date: string, question: StandupQuestion): StandupRecord {
-    return <StandupRecord>{
+function formatStandupMeetingItem(user: SlackUser, date: string, question: StandupQuestion): StandupMeetingItem {
+    return <StandupMeetingItem>{
         userId: user.userId,
         date,
         answers: [
@@ -56,12 +56,33 @@ async function sendMessageToUser(userId: string, text: string): Promise<string> 
 async function recordMessage(user: SlackUser, question: StandupQuestion) {
     await sendMessageToUser(user.userId, question.text);
     const dateKey = getTodaysDate();
-    await storage.createStandupRecord(getStandupRecord(user, dateKey, question));
+    await storage.createStandupMeetingItem(formatStandupMeetingItem(user, dateKey, question));
 }
 
 export const startMeeting = async () => {
     const sentMessages = USERS.map(u => recordMessage(u, getQuestionByOrder(0)));
     return Promise.all(sentMessages);
+}
+
+function checkUserStandupCompletition(answers: StandupQuestion[]) {
+    return answers.length === QUESTIONS.length && answers.every(a => Boolean(a.text));
+}
+
+function getUserStandupStatus(userId: string, date: string) {
+    return storage.getStandupMeetingItem(userId, date);
+}
+
+async function handleUserReply(slackMessage: Event) {
+    const {
+        user,
+        answers,
+    } = slackMessage;
+    // TODO: check if the event_time is between the stand up time
+    const standupMeetingItem = await getUserStandupStatus(user, getTodaysDate());
+    console.log(standupMeetingItem);
+    if (checkUserStandupCompletition(answers)) {
+        await sendMessageToUser(user, 'You have already sent your update');
+    }
 }
 
 export const slackBot = async (slackEvent: SlackEvent) => {
@@ -74,14 +95,7 @@ export const slackBot = async (slackEvent: SlackEvent) => {
             statusCode: 200,
         };
     }
-    const {
-        channel,
-        text,
-    } = slackMessage;
-    const result = await web.chat.postMessage({
-        channel,
-        text: text.split('').reverse().join(''),
-    });
+    await handleUserReply(slackMessage);
     return {
         statusCode: 200,
     };
