@@ -11,6 +11,8 @@ custom:
     prod: toolconnect-prod
   profile: ${self:custom.profiles.${self:provider.stage}}
   flamingoMeetingTable: ${self:service.name}-meeting-${self:provider.stage}-${self:provider.region}
+  START_MEETING: START_MEETING
+  END_MEETING: END_MEETING
   variables: ${file(env.yml)}
 
 provider:
@@ -26,7 +28,25 @@ provider:
     BOT_TOKEN: ${self:custom.variables.BOT_TOKEN}
     CHANNEL_REPORT: ${self:custom.variables.CHANNEL_REPORT}
     FLAMING_MEETING_TABLE: ${self:custom.flamingoMeetingTable}
-    AWS_PROFILE: ${self:provider.profile}
+    START_MEETING: ${self:custom.START_MEETING}
+    END_MEETING: ${self:custom.END_MEETING}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - logs:CreateLogGroup
+        - logs:CreateLogStream
+        - logs:PutLogEvents
+      Resource: arn:aws:logs:${self:provider.region}:*:*
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource:
+        Fn::Join:
+          - ':'
+          - - arn:aws:dynamodb
+            - Ref: AWS::Region
+            - Ref: AWS::AccountId
+            - "table/${self:custom.flamingoMeetingTable}"
 
 package:
   individually: "true"
@@ -38,10 +58,18 @@ functions:
       - http:
           method: post
           path: slack-event
-  startMeeting:
-    handler: src/index.startMeetingHandler
+  scheduler:
+    handler: src/index.scheduler
     events:
-      - scheduled: ${self:custom.variables.MEETING_START_TIME}
+      # - schedule: 
+      #     rate: ${self:custom.variables.MEETING_START_TIME}
+      #     input:
+      #       type: ${self:custom.START_MEETING}
+      # - schedule: 
+      #     rate: ${self:custom.variables.MEETING_END_TIME}
+      #     input:
+      #       type: ${self:custom.END_MEETING}
+      
 
 resources:
   Resources:

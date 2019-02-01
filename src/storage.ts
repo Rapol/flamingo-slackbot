@@ -32,7 +32,7 @@ export default class StorageAdapter {
         return Item;
     }
 
-    async batchGetStandupMeetingItem(users: SlackUser[], date: string): Promise<DynamoDB.DocumentClient.BatchGetResponseMap> {
+    async batchGetStandupMeetingItems(users: SlackUser[], date: string): Promise<DynamoDB.DocumentClient.AttributeMap> {
         const itemInput: DynamoDB.DocumentClient.BatchGetItemInput = {
             RequestItems: {
                 [this.tableName]: {
@@ -44,7 +44,7 @@ export default class StorageAdapter {
             }
         }
         const { Responses } = await this.dynamoClient.batchGet(itemInput).promise();
-        return Responses;
+        return Responses[this.tableName];
     }
 
     async updateUserResponse(userId: String, date: string, questionOrder, response: string) {

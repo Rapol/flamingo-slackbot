@@ -64,12 +64,9 @@ async function askNextQuestion(userId: string, date: string, question: StandupQu
     await storage.askNextQuestion(userId, date, question);
 }
 
-export const startMeeting = async () => {
-    const sentMessages = USERS.map(u => recordMessage(u, getQuestionByOrder(0)));
-    return Promise.all(sentMessages);
-}
-
 function checkUserStandupCompletition(responses: StandupQuestion[]) {
+    console.log(JSON.stringify(responses, null, 2));
+    console.log(QUESTIONS);
     const completed = responses.length === QUESTIONS.length && responses.every(a => Boolean(a.response))
     const currentQuestionIndex = responses.length - 1;
     return {
@@ -102,17 +99,29 @@ async function handleUserReply(slackMessage: Event) {
         completed,
         currentQuestionIndex,
     } = checkUserStandupCompletition(responses);
+    console.log(completed);
     if (completed) {
         return sendMessageToUser(user, 'You have already sent your update');
     }
     await storage.updateUserResponse(user, date, currentQuestionIndex, text);
-    if (currentQuestionIndex + 1 > QUESTIONS.length) {
+    if (currentQuestionIndex === QUESTIONS.length - 1) {
         return sendMessageToUser(user, 'Great! All caught up, have a nice day');
     }
     await askNextQuestion(user, date, QUESTIONS[currentQuestionIndex + 1]);
 }
 
-export const slackBot = async (slackEvent: SlackEvent) => {
+export const startMeeting = async () => {
+    const sentMessages = USERS.map(u => recordMessage(u, getQuestionByOrder(0)));
+    return Promise.all(sentMessages);
+}
+
+export const endMeeting = async () => {
+    const date = getTodaysDate();
+    const meetingResponses = await storage.batchGetStandupMeetingItems(USERS, date);
+    console.log(meetingResponses);
+}
+
+export const bot = async (slackEvent: SlackEvent) => {
     const {
         event: slackMessage
     } = slackEvent;
