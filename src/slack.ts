@@ -6,8 +6,8 @@ import { Event, SlackEvent, SlackUser, StandupQuestion, StandupMeetingItem } fro
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const CHANNEL_REPORT = process.env.CHANNEL_REPORT;
-let CHANNEL_REPORT_ID;
 
+const web = new WebClient(BOT_TOKEN);
 const storage = new Storage(process.env.FLAMING_MEETING_TABLE)
 
 const {
@@ -15,7 +15,7 @@ const {
     QUESTIONS,
 } = config;
 
-const web = new WebClient(BOT_TOKEN);
+const CHANNEL_REPORT_ID = getReportChannelId();
 
 function getQuestionByOrder(order: number) {
     return QUESTIONS.find(q => q.order === order);
@@ -66,9 +66,6 @@ function sendMessageToChannel(channel: string, username: string, text: string, t
 }
 
 async function getReportChannelId() {
-    if (CHANNEL_REPORT_ID) {
-        return CHANNEL_REPORT_ID;
-    }
     const param = {
         exclude_archived: true,
         types: 'public_channel',
@@ -77,8 +74,7 @@ async function getReportChannelId() {
     };
     const result: any = await web.conversations.list(param);
     const channel = result.channels.find(c => c.name == CHANNEL_REPORT);
-    CHANNEL_REPORT_ID = channel ? channel.id : '';
-    return CHANNEL_REPORT_ID;
+    return channel ? channel.id : '';
 }
 
 async function threadMessages(channel: string, messages: any[]): Promise<any> {
@@ -152,9 +148,9 @@ async function handleUserReply(slackMessage: Event) {
     await askNextQuestion(user, date, QUESTIONS[currentQuestionIndex + 1]);
 }
 
-async function createReport(standUpMeetingItems: StandupMeetingItem[]) {
+async function createReport(channel, standUpMeetingItems: StandupMeetingItem[]) {
     const userThreadMessages = formatStandupMeetingItemForSlack(standUpMeetingItems);
-    await threadMessages(CHANNEL_REPORT_ID, userThreadMessages);
+    await threadMessages(channel, userThreadMessages);
 }
 
 export const startMeeting = async () => {
@@ -165,11 +161,11 @@ export const startMeeting = async () => {
 export const endMeeting = async () => {
     const date = getTodaysDate();
     const meetingResponses = await storage.batchGetStandupMeetingItems(USERS, date);
-    await getReportChannelId();
+    const channelId = await CHANNEL_REPORT_ID;
     if (meetingResponses.length === 0) {
-        return sendMessageToChannel(CHANNEL_REPORT_ID, null, 'Nobody sent their problems :(', null);
+        return sendMessageToChannel(channelId, null, 'Nobody sent their problems :(', null);
     }
-    return createReport(meetingResponses);
+    return createReport(channelId, meetingResponses);
 }
 
 export const bot = async (slackEvent: SlackEvent) => {
