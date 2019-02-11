@@ -4,7 +4,8 @@ export default <Config>{
     USERS: [
         // rapol
         {
-            userId: 'UFLFZ8HNE'
+            userId: 'UFLFZ8HNE',
+            username: 'rapol',
         },
     ],
     QUESTIONS: [

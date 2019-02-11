@@ -5,7 +5,8 @@
   "main": "handler.js",
   "scripts": {
     "invoke:slack:bot": "sls invoke local -f bot --path ./fixtures/slack/slack-message.json",
-    "invoke:slack:scheduler:startMeeting": "sls invoke local -f scheduler --path ./fixtures/slack/start-meeting.json"
+    "invoke:slack:scheduler:startMeeting": "sls invoke local -f scheduler --path ./fixtures/slack/start-meeting.json",
+    "invoke:slack:scheduler:endMeeting": "sls invoke local -f scheduler --path ./fixtures/slack/end-meeting.json"
   },
   "dependencies": {
     "@slack/client": "^4.8.0",

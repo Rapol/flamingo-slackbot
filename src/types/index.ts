@@ -83,7 +83,8 @@ export interface SlackEvent {
 }
 
 export interface SlackUser {
-    userId: string
+    userId: string,
+    username: string,
 }
 
 export interface StandupQuestion {
@@ -102,5 +103,6 @@ export interface Config {
 export interface StandupMeetingItem {
     userId: string;
     date: string;
+    username: string;
     responses: StandupQuestion[];
 }
