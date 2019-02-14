@@ -1,6 +1,23 @@
 import { Config } from './types';
 
-export default <Config>{
+export default {
+    QUESTIONS: [
+        {
+            questionId: 'WDYDY',
+            order: 0,
+            text: 'What did you do yesterday',
+        },
+        {
+            questionId: 'WAYGTDT',
+            order: 1,
+            text: 'What are you going to do today?',
+        },
+        {
+            questionId: 'AB',
+            order: 2,
+            text: 'Any blockers?',
+        },
+    ],
     USERS: [
         // rapol
         {
@@ -8,21 +25,4 @@ export default <Config>{
             username: 'rapol',
         },
     ],
-    QUESTIONS: [
-        {
-            questionId: 'WDYDY',
-            order: 0,
-            text: 'What did you do yesterday'
-        },
-        {
-            questionId: 'WAYGTDT',
-            order: 1,
-            text: 'What are you going to do today?'
-        },
-        {
-            questionId: 'AB',
-            order: 2,
-            text: 'Any blockers?'
-        },
-    ]
-}
+} as Config;

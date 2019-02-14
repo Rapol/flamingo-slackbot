@@ -1,14 +1,21 @@
 import { WebClient } from '@slack/client';
 
-import Storage from './storage';
 import config from './config';
-import { Event, SlackEvent, SlackUser, StandupQuestion, StandupMeetingItem } from './types';
+import Storage from './storage';
+
+import {
+    Event,
+    SlackEvent,
+    SlackUser,
+    StandupMeetingItem,
+    StandupQuestion,
+} from './types';
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const CHANNEL_REPORT = process.env.CHANNEL_REPORT;
 
 const web = new WebClient(BOT_TOKEN);
-const storage = new Storage(process.env.FLAMING_MEETING_TABLE)
+const storage = new Storage(process.env.FLAMING_MEETING_TABLE);
 
 const {
     USERS,
@@ -26,17 +33,17 @@ function getTodaysDate(): string {
 }
 
 function formatStandupMeetingItem(user: SlackUser, date: string, question: StandupQuestion): StandupMeetingItem {
-    return <StandupMeetingItem>{
-        userId: user.userId,
-        username: user.username,
+    return {
         date,
         responses: [
             {
                 ...question,
                 createdAt: Date.now(),
-            }
-        ]
-    }
+            },
+        ],
+        userId: user.userId,
+        username: user.username,
+    } as StandupMeetingItem;
 }
 
 // Open a DM with the user and send a message to it.
@@ -56,24 +63,23 @@ async function sendMessageToUser(userId: string, text: string): Promise<string> 
 }
 
 // Send message to channel
-function sendMessageToChannel(channel: string, username: string, text: string, thread_ts: string): Promise<any> {
+function sendMessageToChannel(channel: string, username: string, text: string, threadTS: string): Promise<any> {
     return web.chat.postMessage({
         channel,
         text,
+        threadTS,
         username,
-        thread_ts,
     });
 }
 
 async function getReportChannelId() {
     const param = {
         exclude_archived: true,
+        limit: 100,
         types: 'public_channel',
-        // Only get first 100 items
-        limit: 100
     };
     const result: any = await web.conversations.list(param);
-    const channel = result.channels.find(c => c.name == CHANNEL_REPORT);
+    const channel = result.channels.find(c => c.name === CHANNEL_REPORT);
     return channel ? channel.id : '';
 }
 
@@ -89,9 +95,9 @@ function formatResponse(responses: StandupQuestion[]) {
 
 function formatStandupMeetingItemForSlack(meetingResponses: StandupMeetingItem[]) {
     return meetingResponses.map(m => ({
-        username: m.username,
         message: formatResponse(m.responses),
-    }))
+        username: m.username,
+    }));
 }
 
 async function recordMessage(user: SlackUser, question: StandupQuestion) {
@@ -106,12 +112,12 @@ async function askNextQuestion(userId: string, date: string, question: StandupQu
 }
 
 function checkUserStandupCompletition(responses: StandupQuestion[]) {
-    const completed = responses.length === QUESTIONS.length && responses.every(a => Boolean(a.response))
+    const completed = responses.length === QUESTIONS.length && responses.every(a => Boolean(a.response));
     const currentQuestionIndex = responses.length - 1;
     return {
         completed,
         currentQuestionIndex,
-    }
+    };
 }
 
 function getUserStandupStatus(userId: string, date: string) {
@@ -156,7 +162,7 @@ async function createReport(channel, standUpMeetingItems: StandupMeetingItem[]) 
 export const startMeeting = async () => {
     const sentMessages = USERS.map(u => recordMessage(u, getQuestionByOrder(0)));
     return Promise.all(sentMessages);
-}
+};
 
 export const endMeeting = async () => {
     const date = getTodaysDate();
@@ -166,11 +172,11 @@ export const endMeeting = async () => {
         return sendMessageToChannel(channelId, null, 'Nobody sent their problems :(', null);
     }
     return createReport(channelId, meetingResponses);
-}
+};
 
 export const bot = async (slackEvent: SlackEvent) => {
     const {
-        event: slackMessage
+        event: slackMessage,
     } = slackEvent;
     console.log(slackEvent);
     if (slackMessage.bot_id || slackMessage.subtype === 'bot_message') {
@@ -182,5 +188,5 @@ export const bot = async (slackEvent: SlackEvent) => {
     return {
         statusCode: 200,
     };
-}
+};
 
