@@ -3,6 +3,8 @@
   "version": "0.0.1",
   "description": "Slack standup bot",
   "scripts": {
+    "deploy": "sls deploy",
+    "deploy:dev": "NODE_ENV=dev sls deploy",
     "lint": "tslint -c tslint.json --project tsconfig.json src/**.ts",
     "lint-fix": "npm run lint -- --fix",
     "invoke:slack:bot": "sls invoke local -f bot --path ./fixtures/slack/slack-message.json",
@@ -12,6 +14,7 @@
   "dependencies": {
     "@slack/client": "^4.8.0",
     "aws-sdk": "^2.395.0",
+    "serverless": "^1.37.1",
     "source-map-support": "^0.5.0",
     "tslint": "^5.12.1"
   },

@@ -69,7 +69,6 @@ functions:
       #     rate: ${self:custom.variables.MEETING_END_TIME}
       #     input:
       #       type: ${self:custom.END_MEETING}
-      
 
 resources:
   Resources:
