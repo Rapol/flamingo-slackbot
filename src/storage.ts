@@ -21,7 +21,7 @@ export default class StorageAdapter {
         return this.dynamoClient.put(itemInput).promise();
     }
 
-    public async getStandupMeetingItem(userId: string, date: string): Promise<DynamoDB.DocumentClient.AttributeMap> {
+    public async getStandupMeetingItem(userId: string, date: string): Promise<IStandupMeetingItem> {
         const itemInput: DynamoDB.DocumentClient.GetItemInput = {
             Key: {
                 date,
@@ -30,7 +30,7 @@ export default class StorageAdapter {
             TableName: this.tableName,
         };
         const { Item } = await this.dynamoClient.get(itemInput).promise();
-        return Item;
+        return Item as IStandupMeetingItem;
     }
 
     public async batchGetStandupMeetingItems(users: ISlackUser[], date: string): Promise<IStandupMeetingItem[]> {
@@ -49,7 +49,7 @@ export default class StorageAdapter {
         return standUpMeetingItems as IStandupMeetingItem[];
     }
 
-    public async updateUserResponse(userId: string, date: string, questionOrder, response: string) {
+    public async updateUserResponse(userId: string, date: string, questionOrder: number, response: string) {
         const itemInput: DynamoDB.DocumentClient.UpdateItemInput = {
             ExpressionAttributeNames: {
                 '#r': 'response',
@@ -67,7 +67,7 @@ export default class StorageAdapter {
         return this.dynamoClient.update(itemInput).promise();
     }
 
-    public async askNextQuestion(userId: string, date: string, question: IStandupQuestion) {
+    public async appendResponse(userId: string, date: string, question: IStandupQuestion) {
         const itemInput: DynamoDB.DocumentClient.UpdateItemInput = {
             TableName: this.tableName,
             Key: {

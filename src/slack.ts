@@ -42,11 +42,11 @@ async function sendMessageToUser(userId: string, text: string): Promise<string> 
 }
 
 // Send message to channel
-function sendMessageToChannel(channel: string, username: string, text: string, threadTS: string): Promise<any> {
+function sendMessageToChannel(channel: string, username: string, text: string, ts: string): Promise<any> {
     return web.chat.postMessage({
         channel,
         text,
-        threadTS,
+        thread_ts: ts,
         username,
     });
 }
@@ -62,25 +62,20 @@ async function getReportChannelId() {
     return channel ? channel.id : '';
 }
 
-async function threadMessages(channel: string, messages: any[]): Promise<any> {
-    const { message } = await sendMessageToChannel(channel, null, 'Hey! These are everyone\'s problem', null);
+async function threadMessages(channel: string, parentMessage: string, messages: any[]): Promise<any> {
+    const { message } = await sendMessageToChannel(channel, null, parentMessage, null);
     const { ts } = message;
     return Promise.all(messages.map(m => sendMessageToChannel(channel, m.username, m.message, ts)));
 }
 
-async function recordMessage(user: ISlackUser, question: IStandupQuestion) {
+async function askQuestion(user: ISlackUser, question: IStandupQuestion) {
     const dateKey = utils.getTodaysDate();
     await sendMessageToUser(user.userId, question.text);
-    await storage.createStandupMeetingItem(utils.formatStandupMeetingItem(user, dateKey, question));
-}
-
-async function askNextQuestion(userId: string, date: string, question: IStandupQuestion) {
-    await sendMessageToUser(userId, question.text);
-    await storage.askNextQuestion(userId, date, question);
-}
-
-function getUserStandupStatus(userId: string, date: string) {
-    return storage.getStandupMeetingItem(userId, date);
+    if (question.order === 0) {
+        await storage.createStandupMeetingItem(utils.formatStandupMeetingItem(user, dateKey, question));
+    } else {
+        await storage.appendResponse(user.userId, dateKey, question);
+    }
 }
 
 async function handleUserReply(slackMessage: IEvent) {
@@ -90,15 +85,20 @@ async function handleUserReply(slackMessage: IEvent) {
     } = slackMessage;
     const date = utils.getTodaysDate();
     // TODO: check if the event_time is between the stand up time
-    const standupMeetingItem = await getUserStandupStatus(userId, date);
+    const standupMeetingItem = await storage.getStandupMeetingItem(userId, date);
     // user is not part of the cool kids
     if (!standupMeetingItem) {
         // talk to the hand
         return;
     }
     const {
+        username,
         responses,
     } = standupMeetingItem;
+    const slackUser: ISlackUser = {
+        userId,
+        username,
+    };
     const {
         completed,
         currentQuestionIndex,
@@ -110,16 +110,16 @@ async function handleUserReply(slackMessage: IEvent) {
     if (currentQuestionIndex === QUESTIONS.length - 1) {
         return sendMessageToUser(userId, 'Great! All caught up, have a nice day');
     }
-    await askNextQuestion(userId, date, QUESTIONS[currentQuestionIndex + 1]);
+    return askQuestion(slackUser, QUESTIONS[currentQuestionIndex + 1]);
 }
 
 async function createReport(channel, standUpMeetingItems: IStandupMeetingItem[]) {
     const userThreadMessages = utils.formatStandupMeetingItemForSlack(standUpMeetingItems);
-    await threadMessages(channel, userThreadMessages);
+    await threadMessages(channel, 'Hey! These are everyone\'s problem', userThreadMessages);
 }
 
 export const startMeeting = async () => {
-    const sentMessages = USERS.map(u => recordMessage(u, utils.getQuestionByOrder(0)));
+    const sentMessages = USERS.map(user => askQuestion(user, utils.getQuestionByOrder(0)));
     return Promise.all(sentMessages);
 };
 
