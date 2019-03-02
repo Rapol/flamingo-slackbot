@@ -30,6 +30,8 @@ provider:
     FLAMING_MEETING_TABLE: ${self:custom.flamingoMeetingTable}
     START_MEETING: ${self:custom.START_MEETING}
     END_MEETING: ${self:custom.END_MEETING}
+    MEETING_START_TIME: ${self:custom.variables.MEETING_START_TIME}
+    MEETING_END_TIME: ${self:custom.variables.MEETING_END_TIME}
   iamRoleStatements:
     - Effect: Allow
       Action:

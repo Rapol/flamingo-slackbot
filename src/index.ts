@@ -2,9 +2,9 @@ import { APIGatewayEvent, Context, Handler } from 'aws-lambda';
 
 import * as slack from './slack';
 
-import { SlackEvent } from './types';
+import { ISlackEvent } from './types';
 
-function parseEvent(event: APIGatewayEvent): SlackEvent {
+function parseEvent(event: APIGatewayEvent): ISlackEvent {
     return (event.body && typeof event.body === 'string') ? JSON.parse(event.body) : event.body;
 }
 

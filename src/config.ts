@@ -1,4 +1,4 @@
-import { Config } from './types';
+import { IConfig } from './types';
 
 export default {
     QUESTIONS: [
@@ -25,4 +25,4 @@ export default {
             username: 'rapol',
         },
     ],
-} as Config;
+} as IConfig;

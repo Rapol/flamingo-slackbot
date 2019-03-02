@@ -61,7 +61,7 @@ type EventType =
     'url_verification'        |
     'user_change';
 
-export interface Event {
+export interface IEvent {
     type: EventType;
     event_ts: string;
     user?: string;
@@ -71,23 +71,23 @@ export interface Event {
     [key: string]: any;
 }
 
-export interface SlackEvent {
+export interface ISlackEvent {
     token: string;
     team_id: string;
     api_app_id: string;
-    event: Event;
+    event: IEvent;
     type: 'event_callback' | 'url_verification';
     authed_users: string[];
     event_id: string;
     event_time: number;
 }
 
-export interface SlackUser {
+export interface ISlackUser {
     userId: string;
     username: string;
 }
 
-export interface StandupQuestion {
+export interface IStandupQuestion {
     questionId: string;
     response: string;
     order: number;
@@ -95,14 +95,14 @@ export interface StandupQuestion {
     createdAt: number;
 }
 
-export interface Config {
-    USERS: SlackUser[];
-    QUESTIONS: StandupQuestion[];
+export interface IConfig {
+    USERS: ISlackUser[];
+    QUESTIONS: IStandupQuestion[];
 }
 
-export interface StandupMeetingItem {
+export interface IStandupMeetingItem {
     userId: string;
     date: string;
     username: string;
-    responses: StandupQuestion[];
+    responses: IStandupQuestion[];
 }
