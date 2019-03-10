@@ -6,9 +6,7 @@ plugins:
 
 custom:
   profiles:
-    dev: toolconnect-dev
-    stage: toolconnect-stage
-    prod: toolconnect-prod
+    dev: xx
   profile: ${self:custom.profiles.${self:provider.stage}}
   flamingoMeetingTable: ${self:service.name}-meeting-${self:provider.stage}-${self:provider.region}
   START_MEETING: START_MEETING
@@ -63,14 +61,14 @@ functions:
   scheduler:
     handler: src/index.scheduler
     events:
-      # - schedule: 
-      #     rate: ${self:custom.variables.MEETING_START_TIME}
-      #     input:
-      #       type: ${self:custom.START_MEETING}
-      # - schedule: 
-      #     rate: ${self:custom.variables.MEETING_END_TIME}
-      #     input:
-      #       type: ${self:custom.END_MEETING}
+      - schedule: 
+          rate: ${self:custom.variables.MEETING_START_TIME}
+          input:
+            type: ${self:custom.START_MEETING}
+      - schedule: 
+          rate: ${self:custom.variables.MEETING_END_TIME}
+          input:
+            type: ${self:custom.END_MEETING}
 
 resources:
   Resources:

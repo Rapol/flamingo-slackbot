@@ -5,7 +5,7 @@ export default {
         {
             questionId: 'WDYDY',
             order: 0,
-            text: 'What did you do yesterday',
+            text: 'What did you do yesterday?',
         },
         {
             questionId: 'WAYGTDT',
